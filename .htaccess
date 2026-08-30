@@ -1,0 +1,14 @@
+# Protect includes and sql from direct web access.
+RewriteEngine On
+RewriteRule ^includes/.*$ - [F,L]
+RewriteRule ^sql/.*$      - [F,L]
+RewriteRule ^CLAUDE\.md$  - [F,L]
+
+DirectoryIndex index.php
+Options -Indexes
+
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
