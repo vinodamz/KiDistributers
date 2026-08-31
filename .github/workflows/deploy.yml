@@ -85,6 +85,10 @@ jobs:
             --data-urlencode "branch=main" \
             | tee /tmp/pull.json
           jq -e '.status == 1' /tmp/pull.json > /dev/null || (cat /tmp/pull.json; exit 1)
+          if [ "$(jq -r '.data.deployable // 0' /tmp/pull.json)" != "1" ]; then
+            echo "::error::cPanel says this clone is not deployable (deployable=0). Git pull updated /repos/KiDistributers but rsync to the website will not run. Usual cause: extra files in the clone (often includes/config.php). Keep config.php only in the live docroot (kdist.in/apps/includes/). Then Git Version Control → Deploy HEAD."
+            exit 1
+          fi
 
       - name: 2/2 — Run .cpanel.yml deployment task (rsync to docroot)
         run: |
@@ -95,6 +99,10 @@ jobs:
             --data-urlencode "repository_root=${REPO_ROOT}" \
             | tee /tmp/deploy.json
           jq -e '.status == 1' /tmp/deploy.json > /dev/null || (cat /tmp/deploy.json; exit 1)
+          if [ "$(jq -r '.data.deploy_id // empty' /tmp/deploy.json)" = "" ]; then
+            echo "::error::cPanel returned status 1 but no deploy_id — .cpanel.yml likely did not rsync. Check a dirty git clone (see previous step)."
+            exit 1
+          fi
 
       - name: 3/3 — Self-test (probe the live URL)
         run: |
@@ -109,6 +117,14 @@ jobs:
           if [ "$STATUS" != "200" ] && [ "$STATUS" != "302" ]; then
             echo "::error::Live URL returned $STATUS — the deploy looks complete but the URL is dead."
             echo "::error::Check ~/last-kd-deploy.log on the server and verify file permissions (dirs 755, files 644)."
+            exit 1
+          fi
+          BASE=$(printf '%s' "${DEPLOY_URL}" | sed -E 's#(https?://[^/]+).*#\1#')
+          APPS="${BASE}/apps/index.php"
+          AST=$(curl -sS -o /dev/null -w "%{http_code}" "${APPS}?_=$(date +%s)")
+          echo "GET ${APPS} → HTTP $AST"
+          if [ "$AST" = "404" ]; then
+            echo "::error::/apps/index.php is 404 — rsync did not copy the super-app into the docroot. Deploy HEAD from cPanel after making the git clone clean."
             exit 1
           fi
           echo "::notice::Site is live."

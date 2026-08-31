@@ -34,6 +34,7 @@ $hubMode = !empty($hubMode);
                 <a href="/apps/index.php">Apps</a>
                 <a href="/index.php">Distribution</a>
             <?php elseif ($user['role'] === 'sales'): ?>
+                <a href="/apps/index.php">Apps</a>
                 <a href="/today.php">My Day</a>
                 <?php if (user_has_module($user, 'orders')): ?>
                     <a href="/orders/index.php">Orders</a>

@@ -34,6 +34,7 @@ try {
 
 $apps = [];
 $catalog = [
+    ['key' => 'hub',       'mod' => null,          'name' => 'All businesses', 'subtitle' => 'Tools · other companies', 'href' => '/apps/index.php'],
     ['key' => 'today',      'mod' => null,          'name' => 'My Day',     'subtitle' => 'Route · Drops · Collections', 'href' => '/today.php'],
     ['key' => 'products',   'mod' => 'products',     'name' => 'Products',    'subtitle' => 'SKU · Price · GST',          'href' => '/products/index.php'],
     ['key' => 'customers',   'mod' => 'customers',    'name' => 'Customers',   'subtitle' => 'Outlets · Routes · Credit',   'href' => '/customers/index.php'],
@@ -67,6 +68,7 @@ foreach ($catalog as $c) {
 }
 
 $icons = [
+    'hub'        => '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     'today'      => '<path d="M12 8v5l3 2"/><circle cx="12" cy="12" r="9"/>',
     'products'   => '<path d="M3 7l9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>',
     'customers'  => '<path d="M12 13a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 21a8 8 0 0 1 16 0"/>',
@@ -79,6 +81,7 @@ $icons = [
 ];
 
 $GROUPS = [
+    'ki'    => ['label' => 'Ki',     'keys' => ['hub']],
     'route' => ['label' => 'Route',  'keys' => ['today', 'orders', 'deliveries', 'customers']],
     'godown'=> ['label' => 'Godown', 'keys' => ['products', 'stock']],
     'money' => ['label' => 'Money',  'keys' => ['invoices', 'expenses']],
