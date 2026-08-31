@@ -108,7 +108,12 @@ The Action ships **code**, not databases. After the first rsync:
 | `~/last-kd-deploy.log` on the server | rsync output from `.cpanel.yml` |
 | cPanel → **Errors** | PHP runtime errors after deploy |
 
-If GitHub Actions is green but `/apps/` is 404: cPanel pulled git into `~/repos/KiDistributers` but did **not** rsync (look for `"deployable":0` in the pull JSON). Almost always `includes/config.php` was created **inside the clone**. Delete it there only; keep `~/kidistributers/includes/config.php`. Then **Git Version Control → Deploy HEAD**.
+If GitHub Actions is green but `/apps/` is 404: cPanel pulled git into `~/repos/KiDistributers` but did **not** rsync (look for `"deployable":0` in the pull JSON). That is not only `config.php`. A dirty clone (any extra file: `error_log`, `.DS_Store`) **or** a `.cpanel.yml` cPanel will not parse also disables Deploy.
+
+1. File Manager search for `login.php` — that folder is the real website. Look there for `apps/index.php`.
+2. Confirm `apps/index.php` exists in `~/repos/KiDistributers/apps/` (git clone). If it is in the clone but not next to `login.php`, rsync never ran or it rsynced to `$HOME/kidistributers` while the subdomain points somewhere else.
+3. Terminal: `cd ~/repos/KiDistributers && git status` — must say `working tree clean`.
+4. Then **Git Version Control → Deploy HEAD**.
 
 ## Manual trigger
 

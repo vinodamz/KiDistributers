@@ -1,12 +1,4 @@
 ---
-# cPanel deployment recipe.
-# IMPORTANT: keep the rsync invocation on ONE PHYSICAL LINE — YAML's folded
-# scalar (>-) preserves newlines on more-indented continuation lines, which
-# silently corrupts deploys.
-#
-# Point the rsync destination at the Ki Distributers docroot (must match the
-# subdomain document root). Clone lives at $HOME/repos/KiDistributers, outside
-# the web tree.
 deployment:
   tasks:
     - /usr/bin/rsync -av --checksum --no-perms --omit-dir-times --exclude='.git/' --exclude='.github/' --exclude='.gitignore' --exclude='.cpanel.yml' --exclude='README.md' --exclude='CICD.md' --exclude='CLAUDE.md' --exclude='includes/config.php' ./ $HOME/kidistributers/ > $HOME/last-kd-deploy.log 2>&1
