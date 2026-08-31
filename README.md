@@ -10,6 +10,15 @@ Same tech stack and UI language as [Little Graduates](https://github.com/vinodam
 - Role (`admin` / `sales` / `warehouse` / `accounts`) plus per-module access
 - Hostgator / cPanel friendly — no build step
 
+## Two kinds of apps
+
+| | |
+|---|---|
+| **Distribution** | The desk you already use: `/` · My Day, orders, van, stock, invoices. Sales still land on **My Day**. |
+| **Super app** | `/apps/` — launcher for every business plus shared tools (PDF compress first). Same PIN login. |
+
+Add another company as a tile: `hub.businesses` in `includes/config.php` (name + URL). Tools stay on this site so they are not rebuilt per business.
+
 ## Modules
 
 | | |
