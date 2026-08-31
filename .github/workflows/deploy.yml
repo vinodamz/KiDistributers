@@ -1,0 +1,97 @@
+name: Deploy to Hostgator (cPanel pull)
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-hostgator
+  cancel-in-progress: false
+
+jobs:
+  lint:
+    name: PHP syntax check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          tools: none
+
+      - name: php -l on every .php file
+        run: |
+          set -e
+          find . -path ./.git -prune -o -name '*.php' -print | while read -r f; do
+            php -l "$f" >/dev/null
+          done
+
+  deploy:
+    name: Trigger cPanel git-pull and deploy
+    needs: lint
+    runs-on: ubuntu-latest
+    env:
+      CPANEL_HOST: ${{ secrets.CPANEL_HOST }}
+      CPANEL_USER: ${{ secrets.CPANEL_USER }}
+      CPANEL_TOKEN: ${{ secrets.CPANEL_TOKEN }}
+      DEPLOY_URL: ${{ secrets.DEPLOY_URL }}
+      REPO_ROOT: /home/${{ secrets.CPANEL_USER }}/repos/KiDistributers
+    steps:
+      - name: Require cPanel secrets
+        run: |
+          set -e
+          missing=0
+          for name in CPANEL_HOST CPANEL_USER CPANEL_TOKEN; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is not set. Add it under Settings → Secrets and variables → Actions. See CICD.md."
+              missing=1
+            fi
+          done
+          exit "$missing"
+
+      - name: Normalise host (strip any https:// prefix and trailing /)
+        run: |
+          HOST=$(printf '%s' "${CPANEL_HOST}" | sed -E 's#^https?://##; s#/+$##')
+          echo "::add-mask::${HOST}"
+          echo "CPANEL_HOST_CLEAN=${HOST}" >> "$GITHUB_ENV"
+
+      - name: 1/2 — Pull latest from origin (git fetch + reset to remote)
+        run: |
+          set -e
+          curl -sS --fail-with-body -X POST \
+            "https://${CPANEL_HOST_CLEAN}:2083/execute/VersionControl/update" \
+            -H "Authorization: cpanel ${CPANEL_USER}:${CPANEL_TOKEN}" \
+            --data-urlencode "repository_root=${REPO_ROOT}" \
+            --data-urlencode "branch=main" \
+            | tee /tmp/pull.json
+          jq -e '.status == 1' /tmp/pull.json > /dev/null || (cat /tmp/pull.json; exit 1)
+
+      - name: 2/2 — Run .cpanel.yml deployment task (rsync to docroot)
+        run: |
+          set -e
+          curl -sS --fail-with-body -X POST \
+            "https://${CPANEL_HOST_CLEAN}:2083/execute/VersionControlDeployment/create" \
+            -H "Authorization: cpanel ${CPANEL_USER}:${CPANEL_TOKEN}" \
+            --data-urlencode "repository_root=${REPO_ROOT}" \
+            | tee /tmp/deploy.json
+          jq -e '.status == 1' /tmp/deploy.json > /dev/null || (cat /tmp/deploy.json; exit 1)
+
+      - name: 3/3 — Self-test (probe the live URL)
+        run: |
+          set +e
+          if [ -z "${DEPLOY_URL}" ]; then
+            echo "::notice::DEPLOY_URL secret is not set — skipping live probe. Add it (e.g. https://kd.example.com/login.php) once the subdomain is live."
+            exit 0
+          fi
+          sleep 6
+          STATUS=$(curl -sS -o /dev/null -w "%{http_code}" "${DEPLOY_URL}?_=$(date +%s)")
+          echo "GET ${DEPLOY_URL} → HTTP $STATUS"
+          if [ "$STATUS" != "200" ] && [ "$STATUS" != "302" ]; then
+            echo "::error::Live URL returned $STATUS — the deploy looks complete but the URL is dead."
+            echo "::error::Check ~/last-kd-deploy.log on the server and verify file permissions (dirs 755, files 644)."
+            exit 1
+          fi
+          echo "::notice::Site is live."
