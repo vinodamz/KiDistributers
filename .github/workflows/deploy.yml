@@ -52,11 +52,28 @@ jobs:
           done
           exit "$missing"
 
-      - name: Normalise host (strip any https:// prefix and trailing /)
+      - name: Normalise host (strip URL wrapper, port, path, whitespace)
         run: |
-          HOST=$(printf '%s' "${CPANEL_HOST}" | sed -E 's#^https?://##; s#/+$##')
+          set -e
+          HOST=$(printf '%s' "${CPANEL_HOST}" | tr -d '\r\n\t ' | sed -E 's#^https?://##; s#/.*$##; s#:208[37]$##')
+          USER=$(printf '%s' "${CPANEL_USER}" | tr -d '\r\n\t ')
+          TOKEN=$(printf '%s' "${CPANEL_TOKEN}" | tr -d '\r\n\t ')
           echo "::add-mask::${HOST}"
+          echo "::add-mask::${USER}"
+          echo "::add-mask::${TOKEN}"
+          if [ -z "${HOST}" ] || ! [[ "${HOST}" =~ [.] ]]; then
+            echo "::error::CPANEL_HOST must be the cPanel server hostname from the browser bar (e.g. s3744.bom1.stableserver.net), with no https:// and no :2083."
+            exit 1
+          fi
+          if ! getent hosts "${HOST}" >/dev/null; then
+            echo "::error::GitHub Actions cannot resolve CPANEL_HOST in DNS. Copy the hostname from the cPanel login URL (the part before :2083), not your website domain unless that name is the control-panel host."
+            exit 1
+          fi
+          echo "Resolved CPANEL_HOST (${#HOST} chars)."
           echo "CPANEL_HOST_CLEAN=${HOST}" >> "$GITHUB_ENV"
+          echo "CPANEL_USER=${USER}" >> "$GITHUB_ENV"
+          echo "CPANEL_TOKEN=${TOKEN}" >> "$GITHUB_ENV"
+          echo "REPO_ROOT=/home/${USER}/repos/KiDistributers" >> "$GITHUB_ENV"
 
       - name: 1/2 — Pull latest from origin (git fetch + reset to remote)
         run: |
