@@ -108,6 +108,8 @@ The Action ships **code**, not databases. After the first rsync:
 | `~/last-kd-deploy.log` on the server | rsync output from `.cpanel.yml` |
 | cPanel → **Errors** | PHP runtime errors after deploy |
 
+If GitHub Actions is green but `/apps/` is 404: cPanel pulled git into `~/repos/KiDistributers` but did **not** rsync (look for `"deployable":0` in the pull JSON). Almost always `includes/config.php` was created **inside the clone**. Delete it there only; keep `~/kidistributers/includes/config.php`. Then **Git Version Control → Deploy HEAD**.
+
 ## Manual trigger
 
 GitHub → **Actions** → **Deploy to Hostgator (cPanel pull)** → **Run workflow** → `main`.

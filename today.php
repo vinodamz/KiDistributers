@@ -67,7 +67,8 @@ require __DIR__ . '/includes/header.php';
         <?php if (user_has_module($user, 'orders')): ?>
             <a class="btn btn-primary" href="/orders/edit.php">+ New order</a>
         <?php endif; ?>
-        <a class="btn" href="/index.php?all=1">All apps</a>
+        <a class="btn" href="/apps/index.php">All businesses</a>
+        <a class="btn" href="/index.php?all=1">Distribution</a>
     </div>
 </div>
 
