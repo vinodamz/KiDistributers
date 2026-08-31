@@ -95,8 +95,9 @@ The Action ships **code**, not databases. After the first rsync:
    `config.example.php` with real DB credentials.
    `.cpanel.yml` **excludes** `includes/config.php` from rsync, so later deploys will not
    overwrite it.
-4. Visit `/install.php` once to create the first admin, then **delete** `install.php`.
-   Later deploys also omit it.
+4. Visit `/install.php` once to create the first admin. After an admin exists the
+   page returns 403. You can delete `install.php`; the next deploy will put it
+   back, which is harmless once an admin exists.
 
 ## How to inspect a deploy
 

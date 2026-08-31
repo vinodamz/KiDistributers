@@ -9,9 +9,9 @@
 # the web tree.
 deployment:
   tasks:
-    - /usr/bin/rsync -av --checksum --no-perms --omit-dir-times --exclude='.git/' --exclude='.github/' --exclude='.gitignore' --exclude='.cpanel.yml' --exclude='README.md' --exclude='CICD.md' --exclude='CLAUDE.md' --exclude='install.php' --exclude='includes/config.php' ./ $HOME/kidistributers/ > $HOME/last-kd-deploy.log 2>&1
+    - /usr/bin/rsync -av --checksum --no-perms --omit-dir-times --exclude='.git/' --exclude='.github/' --exclude='.gitignore' --exclude='.cpanel.yml' --exclude='README.md' --exclude='CICD.md' --exclude='CLAUDE.md' --exclude='includes/config.php' ./ $HOME/kidistributers/ > $HOME/last-kd-deploy.log 2>&1
     - /bin/chmod 755 $HOME/kidistributers
     - /usr/bin/find $HOME/kidistributers -type d -exec /bin/chmod 755 {} +
     - /usr/bin/find $HOME/kidistributers -type f -exec /bin/chmod 644 {} +
     - /usr/bin/find $HOME/kidistributers -name '*.php' -exec /usr/bin/touch {} +
-    - /bin/rm -f $HOME/kidistributers/install.php $HOME/kidistributers/CLAUDE.md
+    - /bin/rm -f $HOME/kidistributers/CLAUDE.md
