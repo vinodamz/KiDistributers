@@ -86,7 +86,7 @@ jobs:
             | tee /tmp/pull.json
           jq -e '.status == 1' /tmp/pull.json > /dev/null || (cat /tmp/pull.json; exit 1)
           if [ "$(jq -r '.data.deployable // 0' /tmp/pull.json)" != "1" ]; then
-            echo "::error::cPanel says this clone is not deployable (deployable=0). Git pull updated /repos/KiDistributers but rsync to the website will not run. Usual cause: extra files in the clone (often includes/config.php). In File Manager delete includes/config.php from repos/KiDistributers only — keep it in the website folder kidistributers/includes/. Then Git Version Control → Deploy HEAD."
+            echo "::error::cPanel says this clone is not deployable (deployable=0). Git pull updated /repos/KiDistributers but rsync to the website will not run. Usual cause: extra files in the clone (often includes/config.php). Keep config.php only in the live docroot (kdist.in/apps/includes/). Then Git Version Control → Deploy HEAD."
             exit 1
           fi
 

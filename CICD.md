@@ -15,7 +15,7 @@ GitHub  ──────► GitHub Actions  ──── HTTPS:2083 ───�
                                                 │
                                                 ▼
                                        rsync into docroot
-                                  /home/<user>/kidistributers
+                                  /home/<user>/kdist.in/apps  (apps.kdist.in)
 ```
 
 No FTP. The only secret that leaves GitHub is the cPanel API token, sent over HTTPS
@@ -30,8 +30,8 @@ via `.cpanel.yml`. Feature branches and pull requests only run PHP lint
 ### 1. Create the subdomain and empty docroot
 
 1. cPanel → **Domains → Subdomains** (or **Domains**).
-2. Create the Ki Distributers hostname. Document root: `/home/<cpaneluser>/kidistributers`
-   (must match the rsync destination in `.cpanel.yml`).
+2. Create the Ki Distributers hostname. Document root: `/home/<cpaneluser>/kdist.in/apps`
+   (must match the rsync destination in `.cpanel.yml` — this is `apps.kdist.in`).
 3. Confirm AutoSSL for that hostname.
 
 If the docroot must live elsewhere (e.g. `$HOME/example.com/kidistributers`), change the
@@ -91,7 +91,7 @@ The Action ships **code**, not databases. After the first rsync:
 
 1. cPanel → **MySQL Databases** → create DB + user + grant ALL.
 2. cPanel → **phpMyAdmin** → import `sql/schema.sql` (and `sql/seeds.sql` if wanted).
-3. File Manager → `/home/<cpaneluser>/kidistributers/includes/` → create `config.php` from
+3. File Manager → `/home/<cpaneluser>/kdist.in/apps/includes/` → create `config.php` from
    `config.example.php` with real DB credentials.
    `.cpanel.yml` **excludes** `includes/config.php` from rsync, so later deploys will not
    overwrite it.
@@ -111,7 +111,7 @@ The Action ships **code**, not databases. After the first rsync:
 If GitHub Actions is green but `/apps/` is 404: cPanel pulled git into `~/repos/KiDistributers` but did **not** rsync (look for `"deployable":0` in the pull JSON). That is not only `config.php`. A dirty clone (any extra file: `error_log`, `.DS_Store`) **or** a `.cpanel.yml` cPanel will not parse also disables Deploy.
 
 1. File Manager search for `login.php` — that folder is the real website. Look there for `apps/index.php`.
-2. Confirm `apps/index.php` exists in `~/repos/KiDistributers/apps/` (git clone). If it is in the clone but not next to `login.php`, rsync never ran or it rsynced to `$HOME/kidistributers` while the subdomain points somewhere else.
+2. Confirm `apps/index.php` exists in `~/repos/KiDistributers/apps/` (git clone). If it is in the clone but not next to live `login.php`, rsync never ran or it rsynced to the wrong docroot. Live site is `apps.kdist.in` → `$HOME/kdist.in/apps`.
 3. Terminal: `cd ~/repos/KiDistributers && git status` — must say `working tree clean`.
 4. Then **Git Version Control → Deploy HEAD**.
 
