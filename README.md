@@ -50,4 +50,4 @@ php -S 127.0.0.1:8000
 
 ## Deploy
 
-See [CICD.md](CICD.md). Pushing `main` is meant to git-pull on cPanel and rsync via `.cpanel.yml` once the subdomain is wired.
+Merging to `main` runs GitHub Actions: PHP lint, then a cPanel UAPI git-pull that rsyncs via `.cpanel.yml`. One-time Hostgator setup and required secrets (`CPANEL_HOST`, `CPANEL_USER`, `CPANEL_TOKEN`) are in [CICD.md](CICD.md).

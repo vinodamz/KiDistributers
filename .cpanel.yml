@@ -1,10 +1,17 @@
 ---
-# Placeholder cPanel recipe. Point the rsync destination at the Ki Distributers
-# docroot once the subdomain exists. Same model as Little Graduates: PHP from
-# source, no build step.
+# cPanel deployment recipe.
+# IMPORTANT: keep the rsync invocation on ONE PHYSICAL LINE — YAML's folded
+# scalar (>-) preserves newlines on more-indented continuation lines, which
+# silently corrupts deploys.
+#
+# Point the rsync destination at the Ki Distributers docroot (must match the
+# subdomain document root). Clone lives at $HOME/repos/KiDistributers, outside
+# the web tree.
 deployment:
   tasks:
-    - /usr/bin/rsync -av --checksum --no-perms --omit-dir-times --exclude='.git/' --exclude='.github/' --exclude='.gitignore' --exclude='.cpanel.yml' --exclude='README.md' --exclude='CICD.md' --exclude='CLAUDE.md' --exclude='install.php' --exclude='includes/config.php' ./ $HOME/kidistributers.example.com/ > $HOME/last-kd-deploy.log 2>&1
-    - /bin/rm -rf $HOME/kidistributers.example.com/CLAUDE.md $HOME/kidistributers.example.com/install.php
-    - /usr/bin/find $HOME/kidistributers.example.com -type d -exec /bin/chmod 755 {} +
-    - /usr/bin/find $HOME/kidistributers.example.com -type f -exec /bin/chmod 644 {} +
+    - /usr/bin/rsync -av --checksum --no-perms --omit-dir-times --exclude='.git/' --exclude='.github/' --exclude='.gitignore' --exclude='.cpanel.yml' --exclude='README.md' --exclude='CICD.md' --exclude='CLAUDE.md' --exclude='install.php' --exclude='includes/config.php' ./ $HOME/kidistributers/ > $HOME/last-kd-deploy.log 2>&1
+    - /bin/chmod 755 $HOME/kidistributers
+    - /usr/bin/find $HOME/kidistributers -type d -exec /bin/chmod 755 {} +
+    - /usr/bin/find $HOME/kidistributers -type f -exec /bin/chmod 644 {} +
+    - /usr/bin/find $HOME/kidistributers -name '*.php' -exec /usr/bin/touch {} +
+    - /bin/rm -f $HOME/kidistributers/install.php $HOME/kidistributers/CLAUDE.md
