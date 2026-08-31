@@ -18,4 +18,24 @@ return [
         'lock_seconds'  => 30,
         'timezone'      => 'Asia/Kolkata',
     ],
+    // Super-app launcher at /apps/. Distribution stays at /. Add other businesses as extra rows.
+    'hub' => [
+        'name' => 'Ki',
+        'businesses' => [
+            [
+                'id'       => 'kd',
+                'name'     => 'Ki Distributers',
+                'subtitle' => 'Outlets · orders · van · stock',
+                'href'     => '/index.php',
+                'icon'     => 'distribution',
+            ],
+            // [
+            //     'id'       => 'school',
+            //     'name'     => 'Little Graduates',
+            //     'subtitle' => 'School operations',
+            //     'href'     => 'https://thelittlegraduates.in/',
+            //     'icon'     => 'school',
+            // ],
+        ],
+    ],
 ];

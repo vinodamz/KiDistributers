@@ -99,7 +99,7 @@ require __DIR__ . '/includes/header.php';
 <div class="page-head">
     <div>
         <h1>Welcome, <?= e(first_name($user['name'])) ?> 👋</h1>
-        <p class="muted"><?= e(date('l, j M')) ?> · Distribution desk</p>
+        <p class="muted"><?= e(date('l, j M')) ?> · Distribution desk · <a href="/apps/index.php">All businesses &amp; tools</a></p>
     </div>
 </div>
 

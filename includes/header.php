@@ -2,10 +2,12 @@
 require_once __DIR__ . '/auth.php';
 require_once __DIR__ . '/functions.php';
 require_once __DIR__ . '/notify.php';
+require_once __DIR__ . '/hub.php';
 $cfg  = app_config();
 $user = current_user();
 $v    = asset_version();
 $unreadCount = $user ? unread_count((int)$user['id']) : 0;
+$hubMode = !empty($hubMode);
 ?>
 <!doctype html>
 <html lang="en">
@@ -22,13 +24,16 @@ $unreadCount = $user ? unread_count((int)$user['id']) : 0;
 </head>
 <body<?= isset($bodyClass) ? ' class="' . e($bodyClass) . '"' : '' ?>>
 <header class="topbar">
-    <a href="/index.php" class="brand">
+    <a href="<?= $hubMode ? '/apps/index.php' : '/index.php' ?>" class="brand">
         <img src="/assets/img/logo.png" alt="" class="brand-logo">
-        <span class="brand-mark"><?= e(app_name()) ?></span>
+        <span class="brand-mark"><?= e($hubMode ? hub_name() : app_name()) ?></span>
     </a>
     <?php if ($user): ?>
         <nav>
-            <?php if ($user['role'] === 'sales'): ?>
+            <?php if ($hubMode): ?>
+                <a href="/apps/index.php">Apps</a>
+                <a href="/index.php">Distribution</a>
+            <?php elseif ($user['role'] === 'sales'): ?>
                 <a href="/today.php">My Day</a>
                 <?php if (user_has_module($user, 'orders')): ?>
                     <a href="/orders/index.php">Orders</a>
@@ -44,10 +49,12 @@ $unreadCount = $user ? unread_count((int)$user['id']) : 0;
                                 <a href="/<?= e($mk) ?>/index.php"><?= e($mLabel) ?></a>
                             <?php endif; ?>
                         <?php endforeach; ?>
-                        <a href="/index.php?all=1">All apps</a>
+                        <a href="/index.php?all=1">Distribution home</a>
+                        <a href="/apps/index.php">All businesses</a>
                     </div>
                 </details>
             <?php else: ?>
+                <a href="/apps/index.php">Apps</a>
                 <a href="/index.php">Home</a>
                 <a href="/today.php">Today</a>
                 <?php foreach (['orders' => 'Orders', 'deliveries' => 'Deliveries', 'stock' => 'Stock', 'invoices' => 'Invoices'] as $mk => $lab): ?>
