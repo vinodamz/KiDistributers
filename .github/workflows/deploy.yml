@@ -78,15 +78,48 @@ jobs:
       - name: 1/2 — Pull latest from origin (git fetch + reset to remote)
         run: |
           set -e
-          curl -sS --fail-with-body -X POST \
-            "https://${CPANEL_HOST_CLEAN}:2083/execute/VersionControl/update" \
-            -H "Authorization: cpanel ${CPANEL_USER}:${CPANEL_TOKEN}" \
+          uapi() {
+            local module="$1" func="$2"
+            shift 2
+            curl -sS --fail-with-body -X POST \
+              "https://${CPANEL_HOST_CLEAN}:2083/execute/${module}/${func}" \
+              -H "Authorization: cpanel ${CPANEL_USER}:${CPANEL_TOKEN}" \
+              "$@"
+          }
+
+          uapi VersionControl update \
             --data-urlencode "repository_root=${REPO_ROOT}" \
             --data-urlencode "branch=main" \
             | tee /tmp/pull.json
           jq -e '.status == 1' /tmp/pull.json > /dev/null || (cat /tmp/pull.json; exit 1)
+
           if [ "$(jq -r '.data.deployable // 0' /tmp/pull.json)" != "1" ]; then
-            echo "::error::cPanel says this clone is not deployable (deployable=0). Git pull updated /repos/KiDistributers but rsync to the website will not run. Usual cause: extra files in the clone (often includes/config.php). Keep config.php only in the live docroot (kdist.in/apps/includes/). Then Git Version Control → Deploy HEAD."
+            echo "::warning::deployable=0 after pull. Listing clone (hidden files too) and removing common junk, then pulling again."
+            uapi Fileman list_files \
+              --data-urlencode "dir=${REPO_ROOT}" \
+              --data-urlencode "show_hidden=1" \
+              | tee /tmp/clone-root.json || true
+            jq -r '.data[]? | "\(.type // "file")\t\(.file // .fullpath // .name // .)"' /tmp/clone-root.json || true
+
+            for junk in error_log .DS_Store last-deploy.log last-kd-deploy.log \
+                        includes/error_log includes/.DS_Store; do
+              uapi Fileman fileop \
+                --data-urlencode "op=unlink" \
+                --data-urlencode "sourcefiles=${REPO_ROOT}/${junk}" \
+                >/tmp/unlink.json || true
+            done
+
+            uapi VersionControl update \
+              --data-urlencode "repository_root=${REPO_ROOT}" \
+              --data-urlencode "branch=main" \
+              | tee /tmp/pull.json
+            jq -e '.status == 1' /tmp/pull.json > /dev/null || (cat /tmp/pull.json; exit 1)
+          fi
+
+          echo "deployable=$(jq -r '.data.deployable' /tmp/pull.json) last=$(jq -r '.data.last_update.identifier' /tmp/pull.json)"
+          if [ "$(jq -r '.data.deployable // 0' /tmp/pull.json)" != "1" ]; then
+            echo "::error::Clone is still not deployable. In cPanel Terminal run: cd ~/repos/KiDistributers && git status && git clean -fd && git checkout -- . && git pull"
+            echo "::error::Or Git Version Control → Manage → discard local changes, then Deploy HEAD."
             exit 1
           fi
 
