@@ -1,0 +1,18 @@
+{
+  "name": "Ki Distributers",
+  "install": "bash .cursor/install.sh",
+  "start": "bash .cursor/start.sh",
+  "terminals": [
+    {
+      "name": "php-server",
+      "command": "php -S 0.0.0.0:8000 -t .",
+      "description": "PHP built-in dev server for Ki Distributers on port 8000."
+    }
+  ],
+  "ports": [
+    {
+      "name": "web",
+      "port": 8000
+    }
+  ]
+}
